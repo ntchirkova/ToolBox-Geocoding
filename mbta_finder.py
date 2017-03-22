@@ -24,8 +24,15 @@ def get_json(url):
     Given a properly formatted URL for a JSON web API request, return
     a Python JSON object containing the response to that request.
     """
-    pass
+    f = urlopen(url)
+    response_text = f.read()
+    response_data = json.loads(str(response_text, "utf-8"))
+    return response_data
 
+def get_url(place_name):
+    place_name = place_name.replace(" ", "+")
+    url = GMAPS_BASE_URL + "?address=" + place_name
+    return url
 
 def get_lat_long(place_name):
     """
@@ -35,7 +42,13 @@ def get_lat_long(place_name):
     See https://developers.google.com/maps/documentation/geocoding/
     for Google Maps Geocode API URL formatting requirements.
     """
-    pass
+    url = get_url(place_name)
+    j = get_json(url)
+    coor = j['results']
+    coor = coor[0]
+    coor = coor['geometry']
+    coor = coor['location']
+    return coor
 
 
 def get_nearest_station(latitude, longitude):
@@ -46,7 +59,14 @@ def get_nearest_station(latitude, longitude):
     See http://realtime.mbta.com/Portal/Home/Documents for URL
     formatting requirements for the 'stopsbylocation' API.
     """
-    pass
+    url = MBTA_BASE_URL + "?api_key=" + MBTA_DEMO_API_KEY +"&lat=" + str(latitude) + "&lon=" + str(longitude) + "&format=json"
+    j = get_json(url)
+    station = j['stop']
+    station = station[0]
+    distance = station['distance']
+    station = station['parent_station_name']
+    res = (station, distance)
+    return res
 
 
 def find_stop_near(place_name):
@@ -54,4 +74,7 @@ def find_stop_near(place_name):
     Given a place name or address, print the nearest MBTA stop and the
     distance from the given place to that stop.
     """
-    pass
+    latlong = get_lat_long(place_name)
+    print(get_nearest_station(latlong['lat'],latlong['lng']))
+
+find_stop_near('TD Garden')
